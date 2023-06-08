@@ -30,7 +30,7 @@ def add_book(title, author_name, genre_name):
     book = Book(title=title, author=author, genre=genre)
     session.add(book)
     session.commit()
-
+    print("Your book has been added to the database.")
 def update_book(book_title, new_title=None, new_author_name=None, new_genre_name=None):
     book = session.query(Book).filter_by(title=book_title).first()
     if not book:
@@ -58,13 +58,14 @@ def update_book(book_title, new_title=None, new_author_name=None, new_genre_name
         book.genre = genre
 
     session.commit()
-
+    print("Your book has been updated in the database.")
 def add_user(name):
     user = session.query(User).filter_by(name=name).first()
     if not user:
         user = User(name=name)
         session.add(user)
         session.commit()
+        print("The User has been added to the database.")
     else:
         print("User already exists.")
 
@@ -73,6 +74,7 @@ def remove_user(name):
     if user:
         session.delete(user)
         session.commit()
+        print("The User has been removed.")
     else:
         print("User not found.")
 
@@ -83,6 +85,7 @@ def delete_book(book_title):
 
     session.delete(book)
     session.commit()
+    print("Your book has beeen deleted from the database.")
 
 def loan_book(user_name, book_title):
     user = session.query(User).filter_by(name=user_name).first()
@@ -171,20 +174,20 @@ def find_most_popular_genre():
 
 
 def display_table_data(command):
-    if command == "8":
+    if command == "9":
         view_books()
-    elif command == "9":
-        view_loans()
     elif command == "10":
+        view_loans()
+    elif command == "11":
         author_name = input("Enter author name: ")
         view_books_by_author(author_name)
-    elif command == "11":
-        user_name = input("Enter user name: ")
-        report_books_by_user(user_name)
     elif command == "12":
         user_name = input("Enter user name: ")
-        report_favorite_author(user_name)
+        report_books_by_user(user_name)
     elif command == "13":
+        user_name = input("Enter user name: ")
+        report_favorite_author(user_name)
+    elif command == "14":
         find_most_popular_genre()
 
 
@@ -199,22 +202,40 @@ def view_users():
         print(user.name)
 
 
+
+def books_borrowed_by_user(user_name):
+    user = session.query(User).filter_by(name=user_name).first()
+    if not user:
+        print("User not found in library.")
+        return
+
+    loans = session.query(Loan).filter_by(user=user).all()
+    if not loans:
+        print("No books borrowed by the user.")
+        return
+
+    for loan in loans:
+        print(f"Book: {loan.book.title}")
+        print(f"Author: {loan.book.author.name}")
+        print("---")
+
 while True:
     print("Menu:")
     print("1. Add book")
     print("2. Update book")
-    print("3. Add User")
-    print("4. Remove User")
-    print("5. Delete book")
-    print("6. Loan book")
-    print("7. Return book")
-    print("8. View books")
-    print("9. View loans")
-    print("10. View books by author")
-    print("11. Report books by user")
-    print("12. Report favorite author")
-    print("13. Find most popular genre")
-    print("14. Exit")
+    print("3. View Users")
+    print("4. Add User")
+    print("5. Remove User")
+    print("6. Delete book")
+    print("7. Loan book")
+    print("8. Return book")
+    print("9. View books")
+    print("10. View loans")
+    print("11. View books by author")
+    print("12. Report books by user")
+    print("13. Report favorite author")
+    print("14. Find most popular genre")
+    print("15. Exit")
     command = input("Enter command(1-14): ")
 
     if command not in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]:
@@ -237,33 +258,35 @@ while True:
         update_book(book_title, new_title, new_author_name, new_genre_name)
     elif command == "3":
         view_users()
+    elif command == "4":
+        view_users()
         user_name = input("Enter user name: ")
         add_user(user_name)
         view_users()
-    elif command == "4":
+    elif command == "5":
         view_users()
         user_name = input("Enter user name: ")
         remove_user(user_name)
         view_users()
-    elif command == "5":
+    elif command == "6":
         view_books()
         book_title = input("Enter book title: ")
         delete_book(book_title)
-    elif command == "6":
-        view_users()
-        user_name = input("Enter user name: ")
-        view_books()
-        book_title = input("Enter book title: ")
-        loan_book(user_name, book_title)
     elif command == "7":
         view_users()
         user_name = input("Enter user name: ")
         view_books()
         book_title = input("Enter book title: ")
+        loan_book(user_name, book_title)
+    elif command == "8":
+        view_users()
+        user_name = input("Enter user name: ")
+        books_borrowed_by_user(user_name)
+        book_title = input("Enter book title: ")
         return_book(user_name, book_title)
-    elif command == "8" or command == "9" or command == "10" or command == "11" or command == "12" or command == "13":
+    elif command == "9" or command == "10" or command == "11" or command == "12" or command == "13" or command == "14":
         display_table_data(command)
-    elif command == "14":
+    elif command == "15":
         print("Goodbye")
         break
 
