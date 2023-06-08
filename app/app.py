@@ -1,9 +1,9 @@
-import os
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
-
+from models import Book , Genre , Author , User , Loan
+from generate_books import generate_seed_data
 
 # Set up database using SQLAlchemy ORM
 Base = declarative_base()
@@ -11,58 +11,7 @@ engine = create_engine('sqlite:///library.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# Define tables using SQLAlchemy ORM
-class Book(Base):
-    __tablename__ = 'books'
-    id = Column(Integer, primary_key=True)
-    title = Column(String)
-    author_id = Column(Integer, ForeignKey('authors.id'))
-    genre_id = Column(Integer, ForeignKey('genres.id'))
-    author = relationship('Author', back_populates='books')
-    genre = relationship('Genre', back_populates='books')
 
-    def __repr__(self):
-        return f"<Book(title='{self.title}', author='{self.author.name}', genre='{self.genre.name}')>"
-
-class Author(Base):
-    __tablename__ = 'authors'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    books = relationship('Book', back_populates='author')
-
-    def __repr__(self):
-        return f"<Author(name='{self.name}')>"
-
-class Genre(Base):
-    __tablename__ = 'genres'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    books = relationship('Book', back_populates='genre')
-
-    def __repr__(self):
-        return f"<Genre(name='{self.name}')>"
-
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-
-    def __repr__(self):
-        return f"<User(name='{self.name}')>"
-
-class Loan(Base):
-    __tablename__ = 'loans'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    book_id = Column(Integer, ForeignKey('books.id'))
-    user = relationship('User')
-    book = relationship('Book')
-
-    def __repr__(self):
-        return f"<Loan(user='{self.user.name}', book='{self.book.title}')>"
-
-# Create database tables
-Base.metadata.create_all(engine)
 
 # Define CLI application functions
 def add_book(title, author_name, genre_name):
@@ -83,7 +32,6 @@ def add_book(title, author_name, genre_name):
     session.commit()
 
 def update_book(book_title, new_title=None, new_author_name=None, new_genre_name=None):
-    
     book = session.query(Book).filter_by(title=book_title).first()
     if not book:
         return "Book not found in library"
@@ -110,6 +58,23 @@ def update_book(book_title, new_title=None, new_author_name=None, new_genre_name
         book.genre = genre
 
     session.commit()
+
+def add_user(name):
+    user = session.query(User).filter_by(name=name).first()
+    if not user:
+        user = User(name=name)
+        session.add(user)
+        session.commit()
+    else:
+        print("User already exists.")
+
+def remove_user(name):
+    user = session.query(User).filter_by(name=name).first()
+    if user:
+        session.delete(user)
+        session.commit()
+    else:
+        print("User not found.")
 
 def delete_book(book_title):
     book = session.query(Book).filter_by(title=book_title).first()
@@ -186,62 +151,124 @@ def report_books_by_author(author_name):
     num_books = len(books)
     print(f"{author_name} has written {num_books} books")
 
+def find_most_popular_genre():
+    loans = session.query(Loan).all()
+    genre_count = {}
+
+    for loan in loans:
+        genre = loan.book.genre
+        if genre in genre_count:
+            genre_count[genre] += 1
+        else:
+            genre_count[genre] = 1
+
+    popular_genre = max(genre_count.items(), key=lambda x: x[1], default=(None, 0))
+
+    if popular_genre[0] is not None:
+        print(f"The most popular genre loaned is '{popular_genre[0].name}' with {popular_genre[1]} loans.")
+    else:
+        print("No loans found in the library.")
+
+
+def display_table_data(command):
+    if command == "8":
+        view_books()
+    elif command == "9":
+        view_loans()
+    elif command == "10":
+        author_name = input("Enter author name: ")
+        view_books_by_author(author_name)
+    elif command == "11":
+        user_name = input("Enter user name: ")
+        report_books_by_user(user_name)
+    elif command == "12":
+        user_name = input("Enter user name: ")
+        report_favorite_author(user_name)
+    elif command == "13":
+        find_most_popular_genre()
+
+
+# def view_books():
+#     books = session.query(Book).all()
+#     for book in books:
+#         print(f"{book.title} by {book.author.name}")
+
+def view_users():
+    users = session.query(User).all()
+    for user in users:
+        print(user.name)
+
+
 while True:
     print("Menu:")
     print("1. Add book")
     print("2. Update book")
-    print("3. Delete book")
-    print("4. Loan book")
-    print("5. Return book")
-    print("6. View books")
-    print("7. View loans")
-    print("8. View books by author")
-    print("9. Report books by user")
-    print("10. Report favorite author")
-    print("11. Exit")
-    command = input("Enter command(1-11): ")
+    print("3. Add User")
+    print("4. Remove User")
+    print("5. Delete book")
+    print("6. Loan book")
+    print("7. Return book")
+    print("8. View books")
+    print("9. View loans")
+    print("10. View books by author")
+    print("11. Report books by user")
+    print("12. Report favorite author")
+    print("13. Find most popular genre")
+    print("14. Exit")
+    command = input("Enter command(1-14): ")
 
-   
-    if command not in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]:
+    if command not in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]:
         print("Invalid command.")
         continue
 
     # Execute command
     if command == "1":
+        view_books()
         title = input("Enter book title: ")
         author_name = input("Enter author name: ")
         genre_name = input("Enter genre name: ")
         add_book(title, author_name, genre_name)
     elif command == "2":
+        view_books()
         book_title = input("Enter book title: ")
         new_title = input("Enter new title: ")
         new_author_name = input("Enter new author name: ")
         new_genre_name = input("Enter new genre name: ")
         update_book(book_title, new_title, new_author_name, new_genre_name)
     elif command == "3":
+        view_users()
+        user_name = input("Enter user name: ")
+        add_user(user_name)
+        view_users()
+    elif command == "4":
+        view_users()
+        user_name = input("Enter user name: ")
+        remove_user(user_name)
+        view_users()
+    elif command == "5":
+        view_books()
         book_title = input("Enter book title: ")
         delete_book(book_title)
-    elif command == "4":
+    elif command == "6":
+        view_users()
         user_name = input("Enter user name: ")
+        view_books()
         book_title = input("Enter book title: ")
         loan_book(user_name, book_title)
-    elif command == "5":
+    elif command == "7":
+        view_users()
         user_name = input("Enter user name: ")
+        view_books()
         book_title = input("Enter book title: ")
         return_book(user_name, book_title)
-    elif command == "6":
-        view_books()
-    elif command == "7":
-        view_loans()
-    elif command == "8":
-        author_name = input("Enter author name: ")
-        view_books_by_author(author_name)
-    elif command == "9":
-        user_name = input("Enter user name: ")
-        report_books_by_user(user_name)
-    elif command == "10":
-        user_name = input("Enter user name: ")
-        report_favorite_author(user_name)
-    elif command == "11":
-        print("goodbye")
+    elif command == "8" or command == "9" or command == "10" or command == "11" or command == "12" or command == "13":
+        display_table_data(command)
+    elif command == "14":
+        print("Goodbye")
         break
+
+if __name__ == '__main__':
+    engine = create_engine('sqlite:///library.db')
+    Base.metadata.create_all(engine)
+    generate_seed_data()
+    
