@@ -275,15 +275,17 @@ while True:
     elif command == "7":
         view_users()
         user_name = input("Enter user name: ")
-        view_books()
+        books_borrowed_by_user(user_name)
         book_title = input("Enter book title: ")
         loan_book(user_name, book_title)
+        books_borrowed_by_user(user_name)
     elif command == "8":
         view_users()
         user_name = input("Enter user name: ")
         books_borrowed_by_user(user_name)
         book_title = input("Enter book title: ")
         return_book(user_name, book_title)
+        books_borrowed_by_user(user_name)
     elif command == "9" or command == "10" or command == "11" or command == "12" or command == "13" or command == "14":
         display_table_data(command)
     elif command == "15":
