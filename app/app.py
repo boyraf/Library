@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from models import Book , Genre , Author , User , Loan
 from generate_books import generate_seed_data
 
+
 # Set up database using SQLAlchemy ORM
 Base = declarative_base()
 engine = create_engine('sqlite:///library.db')
@@ -26,11 +27,13 @@ def add_book(title, author_name, genre_name):
         genre = Genre(name=genre_name)
         session.add(genre)
         session.commit()
-
-    book = Book(title=title, author=author, genre=genre)
-    session.add(book)
-    session.commit()
-    print("Your book has been added to the database.")
+    if book:
+        return "Book already in this database"
+    else:
+        book = Book(title=title, author=author, genre=genre)
+        session.add(book)
+        session.commit()
+        print("Your book has been added to the database.")
 def update_book(book_title, new_title=None, new_author_name=None, new_genre_name=None):
     book = session.query(Book).filter_by(title=book_title).first()
     if not book:
@@ -71,6 +74,8 @@ def add_user(name):
 
 def remove_user(name):
     user = session.query(User).filter_by(name=name).first()
+    if not user:
+        print("No user by that name in this database.")
     if user:
         session.delete(user)
         session.commit()

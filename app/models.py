@@ -33,10 +33,9 @@ class Genre(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     books = relationship('Book', back_populates='genre')
-
     def __repr__(self):
         return f"<Genre(name='{self.name}')>"
-
+    
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
@@ -56,5 +55,4 @@ class Loan(Base):
     def __repr__(self):
         return f"<Loan(user='{self.user.name}', book='{self.book.title}')>"
 
-# Create database tables
 Base.metadata.create_all(engine)
