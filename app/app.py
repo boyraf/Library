@@ -27,6 +27,7 @@ def add_book(title, author_name, genre_name):
         genre = Genre(name=genre_name)
         session.add(genre)
         session.commit()
+    book = session.query(Book).filter_by(title=title).first()
     if book:
         return "Book already in this database"
     else:
@@ -225,6 +226,7 @@ def books_borrowed_by_user(user_name):
         print("---")
 
 while True:
+    print("----------Library Management System----------")
     print("Menu:")
     print("1. Add book")
     print("2. Update book")
@@ -249,13 +251,13 @@ while True:
 
     # Execute command
     if command == "1":
-        view_books()
+        #view_books()
         title = input("Enter book title: ")
         author_name = input("Enter author name: ")
         genre_name = input("Enter genre name: ")
         add_book(title, author_name, genre_name)
     elif command == "2":
-        view_books()
+        #view_books()
         book_title = input("Enter book title: ")
         new_title = input("Enter new title: ")
         new_author_name = input("Enter new author name: ")
@@ -274,7 +276,7 @@ while True:
         remove_user(user_name)
         view_users()
     elif command == "6":
-        view_books()
+        #view_books()
         book_title = input("Enter book title: ")
         delete_book(book_title)
     elif command == "7":
